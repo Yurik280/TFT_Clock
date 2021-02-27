@@ -43,8 +43,7 @@ TouchScreen ts = TouchScreen(XP, YP, XM, YM, 300);
 #define Orange          0xFD20      /* 255, 165,   0 */
 #define GreenYellow     0xAFE5      /* 173, 255,  47 */
 uint32_t initTime = millis();
-byte systemHour;
-byte systemMinute;
+byte systemHour, systemMinute;
 const int centerX = 120;
 const int centerY = 120;
 
@@ -52,7 +51,7 @@ const int centerY = 120;
 void setup() {
   String SystemTime = __TIME__;
   systemHour = SystemTime.substring(0,2).toInt();
-  systemHour%=12;
+  systemHour %= 12;
   systemMinute = SystemTime.substring(3,5).toInt();
 //  Serial.begin(9600);
 //  Serial.println(systemHour);
