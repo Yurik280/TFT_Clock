@@ -22,6 +22,11 @@ uint8_t XP = 6;   // can be a digital pin
 TouchScreen ts = TouchScreen(XP, YP, XM, YM, 300);
 // ***TouchScreen***
 
+/* ScreenModes */
+#define MainScreen 0
+#define MenuScreen 1
+#define TimeSetScreen 2
+#define HeaterSetScreen 3
 
 /* some RGB color definitions            */
 #define Black           0x0000      /*   0,   0,   0 */
@@ -42,28 +47,114 @@ TouchScreen ts = TouchScreen(XP, YP, XM, YM, 300);
 #define White           0xFFFF      /* 255, 255, 255 */
 #define Orange          0xFD20      /* 255, 165,   0 */
 #define GreenYellow     0xAFE5      /* 173, 255,  47 */
+
 uint32_t initTime = millis();
 byte systemHour, systemMinute;
 const int centerX = 120;
 const int centerY = 120;
+const int COLOR1 = Orange;
+const int COLOR2 = Black;
+const int COLOR3 = GreenYellow;
+const unsigned char myBitmap [] PROGMEM = {
+// 'Roja', 40x40px
+0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x08, 0x00, 0x00, 0x00, 0x00, 0x08, 0x00, 0x00, 0x00, 0x80, 
+0x10, 0x00, 0x00, 0x00, 0x80, 0x30, 0x08, 0x00, 0x00, 0x40, 0x20, 0x18, 0x00, 0x00, 0x40, 0x20, 
+0x30, 0x00, 0x00, 0x40, 0x7c, 0x40, 0x00, 0x00, 0x67, 0xc7, 0x80, 0x00, 0x00, 0x2c, 0x01, 0x80, 
+0x00, 0x00, 0x30, 0x00, 0xe0, 0x00, 0x00, 0xc0, 0x00, 0x32, 0x30, 0x03, 0x00, 0x00, 0x1f, 0xe0, 
+0x03, 0x00, 0x00, 0x0e, 0x00, 0x02, 0x00, 0x00, 0x03, 0x00, 0x06, 0x00, 0x00, 0x01, 0x80, 0x04, 
+0x08, 0x00, 0x00, 0xc0, 0x04, 0x0c, 0x41, 0xd0, 0x60, 0x04, 0x03, 0xc0, 0x70, 0x20, 0x04, 0x00, 
+0x00, 0x00, 0x20, 0x04, 0x00, 0x00, 0x00, 0x20, 0x04, 0x00, 0x0c, 0x00, 0x30, 0x04, 0x00, 0x30, 
+0x00, 0x10, 0x04, 0x00, 0x60, 0x00, 0x10, 0x04, 0x00, 0x3e, 0x00, 0x10, 0x04, 0x02, 0x00, 0x00, 
+0x18, 0x04, 0x03, 0x80, 0x02, 0x18, 0x04, 0x00, 0xe0, 0x04, 0x18, 0x06, 0x00, 0x3f, 0x9c, 0x18, 
+0x02, 0x00, 0x01, 0xf0, 0x10, 0x01, 0x80, 0x00, 0x00, 0x30, 0x00, 0xc0, 0x00, 0x00, 0x60, 0x00, 
+0x70, 0x00, 0x01, 0x80, 0x00, 0x1c, 0x00, 0x07, 0x00, 0x00, 0x03, 0x80, 0x1c, 0x00, 0x00, 0x00, 
+0xff, 0xf0, 0x00, 0x00, 0x00, 0x02, 0x00, 0x00
 
+};
+byte buttonPressed = 0;
+byte screenMode = 0;
 
 void setup() {
-  String SystemTime = __TIME__;
-  systemHour = SystemTime.substring(0,2).toInt();
+  const char SystemTime [] = __TIME__;
+  systemHour = (SystemTime[0] - '0') * 10 + SystemTime[1] - '0';
   systemHour %= 12;
-  systemMinute = SystemTime.substring(3,5).toInt();
-//  Serial.begin(9600);
-//  Serial.println(systemHour);
-//  Serial.println(systemMinute);
+  systemMinute = (SystemTime[3] - '0') * 10  +SystemTime[4] - '0';
+  // Serial.begin(9600);
+  // Serial.println(systemHour);
+  // Serial.println(systemMinute);
   uint16_t ID = tft.readID(); //
   tft.begin(ID);
   tft.setRotation(1);    //Landscape
-  tft.fillScreen(Black);
-  drawClockShape();
-  drawHourHand(systemHour, systemMinute);  
-  drawMinuteHand(systemMinute);
+  tft.fillScreen(COLOR2);
+  drawScreen();  
 }
+
+/* BUTTONS */
+
+void drawMenuButton() {
+  tft.fillRoundRect(235, 190, 85, 50, 10, COLOR1);
+  tft.setCursor(244, 204);
+  tft.setTextColor(COLOR2);
+  tft.setTextSize(3);
+  tft.print("Menu");
+}
+
+void drawMoon() {
+  tft.drawBitmap(240, 0, myBitmap, 40, 40, COLOR3);
+}
+
+void buttonHandle() {
+  
+}
+
+/* END BUTTONS */
+
+
+/* DRAW SCREEN */
+
+void drawScreen() {
+  switch (screenMode)
+  {
+  case MainScreen:
+    drawMainScreen();
+    break;
+  case MenuScreen:
+    drawMenuScreen();
+    break;  
+  case TimeSetScreen:
+    drawTimeSetScreen();
+    break;
+  case HeaterSetScreen:
+    drawHeaterSetScreen();
+    break;
+  default:
+      break;
+    }
+  }
+ 
+void drawMainScreen() {
+  drawClockShape();
+  clockRefresh();
+  drawMenuButton();
+  drawMoon();
+}
+
+void drawMenuScreen() {
+
+}
+
+void drawTimeSetScreen() {
+
+}
+
+void drawHeaterSetScreen() {
+
+}
+
+/* END DRAW SCREEN */
+
+/* CLOCK */
 
 void clockRun(){
   if(millis() - initTime > 60000) {
@@ -79,21 +170,21 @@ void clockRun(){
 }
 
 void clockRefresh() {  
-  tft.fillCircle(centerX, centerY, 95, Black);  
+  tft.fillCircle(centerX, centerY, 95, COLOR2);  
   drawHourHand(systemHour, systemMinute);  
   drawMinuteHand(systemMinute);
-  tft.fillCircle(centerX, centerY, 8, Orange);
-  tft.fillCircle(centerX, centerY, 2, Black);
+  tft.fillCircle(centerX, centerY, 8, COLOR1);
+  tft.fillCircle(centerX, centerY, 2, COLOR2);
 }
 
 void drawClockShape() {
-  tft.fillCircle(centerX, centerY, 119, Orange);
-  tft.fillCircle(centerX, centerY, 114, Black);
+  tft.fillCircle(centerX, centerY, 119, COLOR1);
+  tft.fillCircle(centerX, centerY, 114, COLOR2);
   for (int i=0; i<12; i++) {    
     float angle = calculateAngle(i, 12);
     int finalX = calculateFinalXPoint(angle, 105);
     int finalY = calculateFinalYPoint(angle, 105);      
-    tft.drawLine(centerX, centerY, finalX, finalY, Orange);
+    tft.drawLine(centerX, centerY, finalX, finalY, COLOR1);
   }
   clockRefresh();
 }
@@ -106,9 +197,9 @@ void drawHourHand(byte hour, byte minute) {
   int finalX = calculateFinalXPoint(angle, 70);
   int finalY = calculateFinalYPoint(angle, 70);  
   if(finalX>centerX && finalY<centerY || finalX<centerX && finalY>centerY) {
-    tft.fillTriangle(centerX-3, centerY-3, centerX+3, centerY+3, finalX, finalY, Orange);
+    tft.fillTriangle(centerX-3, centerY-3, centerX+3, centerY+3, finalX, finalY, COLOR1);
   } else {
-    tft.fillTriangle(centerX+3, centerY-3, centerX-3, centerY+3, finalX, finalY, Orange);
+    tft.fillTriangle(centerX+3, centerY-3, centerX-3, centerY+3, finalX, finalY, COLOR1);
   }
 }
 
@@ -117,9 +208,9 @@ void drawMinuteHand(byte minute) {
   int finalX = calculateFinalXPoint(angle, 85);
   int finalY = calculateFinalYPoint(angle, 85);  
   if(finalX>centerX && finalY<centerY || finalX<centerX && finalY>centerY) {
-    tft.fillTriangle(centerX-2, centerY-2, centerX+2, centerY+2, finalX, finalY, Orange);
+    tft.fillTriangle(centerX-2, centerY-2, centerX+2, centerY+2, finalX, finalY, COLOR1);
   } else {
-    tft.fillTriangle(centerX+2, centerY-2, centerX-2, centerY+2, finalX, finalY, Orange);
+    tft.fillTriangle(centerX+2, centerY-2, centerX-2, centerY+2, finalX, finalY, COLOR1);
   }
 }
 
@@ -138,6 +229,7 @@ int calculateFinalYPoint(float angle, byte large) {
   return finalY;
 }
 
+/* END CLOCK */
 
 void loop() {
   clockRun();
